@@ -19,19 +19,15 @@ echo ""
 echo "Sebelum memulai proses instalasi, mohon ketik nama dan password untuk variabel berikut"
 echo ""
 echo "Password untuk user 'root' pada MariaDB"
-echo ""
 read dbrootpass
 echo ""
 echo "Nama database untuk Wordpress:"
-echo ""
 read wpdbname
 echo ""
 echo "Nama user untuk database Wordpress:"
-echo ""
 read wpdbuser
 echo ""
 echo "Password untuk user database Wordpress:"
-echo ""
 read wpdbpass
 echo ""
 echo "Terima kasih!"
