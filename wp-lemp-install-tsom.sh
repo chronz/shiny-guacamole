@@ -211,6 +211,7 @@ systemctl disable apache2
 cd /etc/php/8.1/fpm
 mv php.ini php.ini.ori
 wget https://raw.githubusercontent.com/chronz/shiny-guacamole/main/php-tsom.ini
+mv php-tsom.ini php.ini
 systemctl restart php8.1-fpm
 chown -R www-data:www-data /var/www/html/wordpress
 echo ""
