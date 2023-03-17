@@ -164,8 +164,8 @@ echo "server {
     index  index.php index.html index.htm;
     server_name www.thesoundofmusic.id;
 
-    ssl_certificate /etc/letsencrypt/live/thesoundofmusic.id/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/thesoundofmusic.id/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/www.thesoundofmusic.id/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www.thesoundofmusic.id/privkey.pem;
 
     error_log /var/log/nginx/www.thesoundofmusic.id_error.log;
     access_log /var/log/nginx/www.thesoundofmusic.id_access.log;
@@ -177,7 +177,7 @@ echo "server {
     location ~ \.php$ {
             include snippets/fastcgi-php.conf;
             fastcgi_pass unix:/run/php/php8.1-fpm.sock;
-            fastcgi_param   SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+            fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
         }
 }
 
@@ -187,8 +187,8 @@ server {
 
     server_name thesoundofmusic.id;
 
-    ssl_certificate /etc/letsencrypt/live/thesoundofmusic.id/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/thesoundofmusic.id/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/www.thesoundofmusic.id/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www.thesoundofmusic.id/privkey.pem;
 
     return 301 https://www.thesoundofmusic.id$request_uri;
 }
