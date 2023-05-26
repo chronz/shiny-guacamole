@@ -3,8 +3,9 @@ echo ""
 echo "************************"
 echo ""
 echo "LEMP Stack & Wordpress"
+echo "HTTPS"
 echo "Instalasi"
-echo "Script V1.0.2"
+echo "Script V1.0.3"
 echo ""
 echo "************************"
 echo ""
@@ -14,9 +15,20 @@ if [[ $EUID -ne 0 ]]; then
 fi
 echo "Script ini akan menginstal LEMP Stack & Wordpress untuk sistem Anda."
 echo ""
+echo "Mohon pastikan IP publik sistem ini telah diarahkan ke domain Cloudflare."
+echo "Setting Cloudflare harus sebagai berikut:"
+echo "1. DNS > Records > A | -DOMAINSERVERINI- | -IPPUBLICSERVERINI- > Proxied"
+echo "2. DNS > Records > A | www | -IPPUBLICSERVERINI- > Proxied"
+echo "3. SSL/TLS > Overview > Encryption Mode > FULL"
+echo "4. SSL/TLS > Edge Certificates > Always Use HTTPS > ON"
+echo "5. SSL/TLS > Edge Certificates > Automatic HTTPS Rewrites > ON"
+echo ""
 read -p "Tekan enter to melanjutkan instalasi. Jika ingin membatalkan instalasi, tekan 'Ctrl + C'."
 echo ""
 echo "Sebelum memulai proses instalasi, mohon ketik nama dan password untuk variabel berikut"
+echo ""
+echo "Domain untuk website (tidak termasuk www; contoh: example.com)"
+read fqdn
 echo ""
 echo "Password untuk user 'root' pada MariaDB"
 read dbrootpass
@@ -50,8 +62,8 @@ mysql -e "GRANT ALL PRIVILEGES ON ${wpdbname}.* TO '${wpdbuser}'@'localhost' IDE
 mysql -e "FLUSH PRIVILEGES;"
 #
 # PHP Install
-apt-get install php php-mysql php-fpm php-zip -y
-systemctl is-enabled php8.1-fpm
+apt-get install php php-mysql php-fpm php-zip php-xml php-gd php-imagick php-curl -y
+systemctl is-enabled php7.4-fpm
 #
 # WP Install
 apt-get install unzip -y
@@ -157,49 +169,100 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** Sets up WordPress vars and included files. */
 require_once ABSPATH . 'wp-settings.php';" >> wp-config.php
+#
+# Nginx Configuration
 echo "server {
-        listen 80;
-        listen [::]:80;
-        root /var/www/html/wordpress;
-        index  index.php index.html index.htm;
-        server_name ${wpdbname};
+  listen 80;
+  listen [::]:80;
+  server_name www.${fqdn} ${fqdn};
+  root /var/www/html/wordpress/;
+  index index.php index.html index.htm index.nginx-debian.html;
 
-        error_log /var/log/nginx/${wpdbname}_error.log;
-        access_log /var/log/nginx/${wpdbname}_access.log;
+  location / {
+    try_files $uri $uri/ /index.php;
+  }
 
-        client_max_body_size 100M;
-        location / {
-                try_files \$uri \$uri/ /index.php?\$args;
-        }
-        location ~ \.php$ {
-                include snippets/fastcgi-php.conf;
-                fastcgi_pass unix:/run/php/php8.1-fpm.sock;
-                fastcgi_param   SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        }
+   location ~ ^/wp-json/ {
+     rewrite ^/wp-json/(.*?)$ /?rest_route=/$1 last;
+   }
+
+  location ~* /wp-sitemap.*\.xml {
+    try_files $uri $uri/ /index.php$is_args$args;
+  }
+
+  error_page 404 /404.html;
+  error_page 500 502 503 504 /50x.html;
+
+  client_max_body_size 100M;
+
+  location = /50x.html {
+    root /var/www/html/wordpress/;
+  }
+
+  location ~ \.php$ {
+    fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
+    include snippets/fastcgi-php.conf;
+
+    # Add headers to serve security related headers
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Permitted-Cross-Domain-Policies none;
+    add_header X-Frame-Options "SAMEORIGIN";
+  }
+
+  #enable gzip compression
+  gzip on;
+  gzip_vary on;
+  gzip_min_length 1000;
+  gzip_comp_level 5;
+  gzip_types application/json text/css application/x-javascript application/javascript image/svg+xml;
+  gzip_proxied any;
+
+  # A long browser cache lifetime can speed up repeat visits to your page
+  location ~* \.(jpg|jpeg|gif|png|webp|svg|woff|woff2|ttf|css|js|ico|xml)$ {
+       access_log        off;
+       log_not_found     off;
+       expires           360d;
+  }
+
+  # disable access to hidden files
+  location ~ /\.ht {
+      access_log off;
+      log_not_found off;
+      deny all;
+  }
+
 }" >> /etc/nginx/conf.d/${wpdbname}.conf
 rm /etc/nginx/sites-enabled/default
 rm /etc/nginx/sites-available/default
+#
+# SSL Creation
+apt install certbot python3-certbot-nginx
+certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email webmaster@${fqdn} --no-eff-email -d ${fqdn},www.${fqdn}
 nginx -t
 systemctl restart nginx
 systemctl disable apache2
 #
 # PHP.ini modifications
-cd /etc/php/8.1/fpm
+cd /etc/php/7.4/fpm
 mv php.ini php.ini.ori
 wget https://raw.githubusercontent.com/chronz/shiny-guacamole/main/php.ini
-systemctl restart php8.1-fpm
+systemctl restart php7.4-fpm
 chown -R www-data:www-data /var/www/html/wordpress
 echo ""
 echo "*************************"
 echo ""
 echo "LEMP Stack & Wordpress"
+echo "HTTPS"
 echo "Instalasi"
-echo "Script V1.0.2"
+echo "Script V1.0.3"
 echo ""
 echo "Berhasil Terinstal"
 echo ""
 echo "Silahkan selesaikan instalasi pada web GUI server yang dapat diakses dari:"
-echo "http://SERVER_IP/"
+echo "https://www.${fqdn}/"
 echo ""
 echo "Wordpress DB Name: ${wpdbname}"
 echo "Wordpress DB User: ${wpdbuser}"
