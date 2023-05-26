@@ -179,15 +179,15 @@ echo "server {
   index index.php index.html index.htm index.nginx-debian.html;
 
   location / {
-    try_files $uri $uri/ /index.php;
+    try_files \$uri \$uri/ /index.php;
   }
 
    location ~ ^/wp-json/ {
-     rewrite ^/wp-json/(.*?)$ /?rest_route=/$1 last;
+     rewrite ^/wp-json/(.*?)$ /?rest_route=/\$1 last;
    }
 
   location ~* /wp-sitemap.*\.xml {
-    try_files $uri $uri/ /index.php$is_args$args;
+    try_files \$uri \$uri/ /index.php\$is_args\$args;
   }
 
   error_page 404 /404.html;
@@ -201,15 +201,15 @@ echo "server {
 
   location ~ \.php$ {
     fastcgi_pass unix:/run/php/php7.4-fpm.sock;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
     include fastcgi_params;
     include snippets/fastcgi-php.conf;
 
     # Add headers to serve security related headers
     add_header X-Content-Type-Options nosniff;
-    add_header X-XSS-Protection "1; mode=block";
+    add_header X-XSS-Protection \"1; mode=block\";
     add_header X-Permitted-Cross-Domain-Policies none;
-    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Frame-Options \"SAMEORIGIN\";
   }
 
   #enable gzip compression
@@ -234,12 +234,12 @@ echo "server {
       deny all;
   }
 
-}" >> /etc/nginx/conf.d/${wpdbname}.conf
+}" >> /etc/nginx/conf.d/${fqdn}.conf
 rm /etc/nginx/sites-enabled/default
 rm /etc/nginx/sites-available/default
 #
 # SSL Creation
-apt install certbot python3-certbot-nginx
+apt install certbot python3-certbot-nginx -y
 certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email webmaster@${fqdn} --no-eff-email -d ${fqdn},www.${fqdn}
 nginx -t
 systemctl restart nginx
