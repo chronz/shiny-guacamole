@@ -12,7 +12,7 @@ sudo ./wp-lemp-https-install-u20.04-v1.0.3.sh
 ```
 
 ## Versi non-HTTPS
-Jika menginginkan instalasi Wordpress tanpa HTTPS atau Cloudflare bukalah halaman berikut
-[Halaman Release](https://github.com/chronz/shiny-guacamole/releases/tag/v1.0.2)
-[Ubuntu 20.04 LTS - HTTP](https://github.com/chronz/shiny-guacamole/releases/download/v1.0.2/wp-lemp-install-u20.04-v1.0.2.sh)
+Jika menginginkan instalasi Wordpress tanpa HTTPS atau Cloudflare bukalah halaman berikut  
+[Halaman Release](https://github.com/chronz/shiny-guacamole/releases/tag/v1.0.2)  
+[Ubuntu 20.04 LTS - HTTP](https://github.com/chronz/shiny-guacamole/releases/download/v1.0.2/wp-lemp-install-u20.04-v1.0.2.sh)  
 [Ubuntu 22.04 LTS - HTTP](https://github.com/chronz/shiny-guacamole/releases/download/v1.0.2/wp-lemp-install-u22.04-v1.0.2.sh)
